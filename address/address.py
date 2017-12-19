@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 data = [1, 2, 3, 4, 9]
 print(id(data))
 print(id(data[0]))

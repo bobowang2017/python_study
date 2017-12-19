@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 def bubble_sort(lists):
     count = len(lists)
     for i in range(0, count):

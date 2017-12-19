@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 data = [7, 6, 9, 8, 5, 10, 3]
 
 for i in range(0, len(data) - 1):

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 def quick_sort(r, low, high):
     if low > high:
         return
