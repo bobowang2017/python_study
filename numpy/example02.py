@@ -17,3 +17,6 @@ print(data4.dtype)
 
 data5 = np.linspace(-1.0, 0, 6)
 print(data5)
+
+data6 = np.random.normal(2, 0.5, 10000)
+print(data6)
