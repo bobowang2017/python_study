@@ -22,4 +22,4 @@ engine = create_engine(DB_CON_STR, echo=False)
 Session = sessionmaker(bind=engine)
 session = Session()
 res = session.query(Hello).filter(text("id=111")).one()
-print res.id, res.name, res.address, res.number
+print (res.id, res.name, res.address, res.number)
