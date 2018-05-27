@@ -26,6 +26,7 @@ class Solution(object):
         result = dict()
         for word in words:
             result[word] = 1 + result[word] if word in result.keys() else 1
+        print(result)
         data = [(k, v) for (k, v) in sorted(result.items(), key=lambda n: (n[1]), reverse=True)][:k]
         print(data)
         return list(map(lambda x: x[0], data))
