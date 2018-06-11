@@ -45,10 +45,13 @@ def show(n, c, w, res):
 
 
 if __name__ == '__main__':
+    # 物品数量
     n = 5
+    # 背包最大容量
     c = 10
+    # 物品重量
     w = [2, 2, 6, 5, 4]
+    # 物品价值
     v = [6, 3, 5, 4, 6]
-
     res = bag(n, c, w, v)
     show(n, c, w, res)
