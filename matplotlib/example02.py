@@ -31,10 +31,10 @@ plt.bar(x_value_list, y_value_list, color='rgb', tick_label=x_name_list)
 # 指定Y轴标签
 plt.ylabel('Statics')
 # 并指定轴域的可视区域
-plt.axis([0, 12, 0, 6000])
+plt.axis([0, 12, 0, 7000])
 
 tag = 'Time Range (%s -- %s)' % ('2018-06-08 14:00:00', time_range)
-plt.text(2, 5800, tag, fontsize=10, color='blue')
+plt.text(2, 6800, tag, fontsize=10, color='blue')
 
 for a, b in zip(x_value_list, y_value_list):
     plt.text(a, b + 0.1, '%.0f' % b, ha='center', va='bottom', fontsize=10)
