@@ -5,8 +5,9 @@ def bubble_sort(lists):
         for j in range(i + 1, count):
             if lists[i] > lists[j]:
                 lists[i], lists[j] = lists[j], lists[i]
-                print(lists)
+            print(lists)
     return lists
+
 
 data = [7, 6, 9, 8, 5, 10, 3]
 print(data)

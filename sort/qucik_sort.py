@@ -15,6 +15,8 @@ def quick_sort(r, low, high):
     r[low], r[i] = r[i], temp
     quick_sort(r, low, i - 1)
     quick_sort(r, i + 1, high)
+
+
 data = [7, 6, 9, 8, 5, 10, 3]
 print(data)
 quick_sort(data, 0, data.__len__() - 1)
