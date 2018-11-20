@@ -10,7 +10,7 @@ def check(begin, end, is_morning):
         return False
     if begin_hour >= 9 and begin_min > 5:
         return False
-    end_hour = int(end[:1])
+    end_hour = int(end[:end.find(':')])
     if end_hour < 6:
         return False
     return True
