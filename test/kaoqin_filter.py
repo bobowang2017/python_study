@@ -29,8 +29,8 @@ myWorkbook = xlwt.Workbook()
 mySheet = myWorkbook.add_sheet('result')
 myStyle = xlwt.easyxf('font: name Times New Roman, color-index red, bold on', num_format_str='#,##0.00')
 mySheet.write(0, 0, '姓名', myStyle)
-mySheet.write(0, 1, '第一次打卡时间', myStyle)
-mySheet.write(0, 2, '最后一次打卡时间', myStyle)
+mySheet.write(0, 1, '当天第一次打卡时间', myStyle)
+mySheet.write(0, 2, '当天最后一次打卡时间', myStyle)
 mySheet.write(0, 3, '上班时间', myStyle)
 mySheet.write(0, 4, '下班时间', myStyle)
 mySheet.write(0, 5, '统计结果', myStyle)
@@ -67,6 +67,10 @@ mySheet.write(j, 2, temp_time_max)
 mySheet.write(j, 3, begin)
 mySheet.write(j, 4, end)
 mySheet.write(j, 5, result)
-mySheet.col(1).width = 256 * 30
-mySheet.col(2).width = 256 * 30
+mySheet.col(0).width = 256 * 15
+mySheet.col(1).width = 256 * 35
+mySheet.col(2).width = 256 * 35
+mySheet.col(3).width = 256 * 15
+mySheet.col(4).width = 256 * 15
+mySheet.col(5).width = 256 * 10
 myWorkbook.save('excelFile.xls')
