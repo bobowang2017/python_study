@@ -3,10 +3,12 @@ import xlrd
 import xlwt
 
 
-def check(begin, end):
+def check(begin, end, is_morning):
     begin_hour = int(begin[:begin.find(':')])
     begin_min = int(begin[begin.find(':') + 1:begin.find(':') + 3])
-    if (begin_hour >= 9 or begin_hour >= 1) and begin_min > 5:
+    if is_morning == '下午':
+        return False
+    if begin_hour >= 9 and begin_min > 5:
         return False
     end_hour = int(end[:1])
     if end_hour < 6:
@@ -40,8 +42,9 @@ for i in range(2, rows):
         temp_time_max = sheet.row_values(i)[3]
     else:
         begin = temp_time_min[temp_time_min.find('午') + 1:].strip()
+        is_morning = temp_time_min[temp_time_min.find('午') - 1: temp_time_min.find('午') + 1]
         end = temp_time_max[temp_time_max.find('午') + 1:].strip()
-        result = check(begin, end)
+        result = check(begin, end, is_morning)
         print('%s | %s | %s (%s -- %s) | %s ' % (temp_name, temp_time_min, temp_time_max, begin, end, result))
         mySheet.write(j, 0, temp_name)
         mySheet.write(j, 1, temp_time_min)
@@ -56,7 +59,7 @@ for i in range(2, rows):
         temp_name = sheet.row_values(i)[1]
         temp_time_min = sheet.row_values(i)[3]
 
-result = check(begin, end)
+result = check(begin, end, is_morning)
 print('%s | %s | %s (%s -- %s) | %s ' % (temp_name, temp_time_min, temp_time_max, begin, end, result))
 mySheet.write(j, 0, temp_name)
 mySheet.write(j, 1, temp_time_min)
