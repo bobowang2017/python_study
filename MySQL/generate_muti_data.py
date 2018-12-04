@@ -11,9 +11,9 @@ cursor = connection.cursor()
 
 sql = """insert into message (from_user, to_user, content, create_at) values('%s','%s','%s','%s')"""
 
-for i in range(1, 1000000):
-    from_user = str(random.randint(1, 10))
-    to_user = str(random.randint(1, 10))
+for i in range(1, 4000000):
+    from_user = str(random.randint(11, 1000))
+    to_user = str(random.randint(11, 1000))
     content = ''.join(random.sample(string.ascii_letters + string.digits, 30))
     now_time = datetime.datetime.now()
     params = (from_user, to_user, content, now_time)
