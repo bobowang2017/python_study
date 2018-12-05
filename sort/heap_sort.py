@@ -1,29 +1,35 @@
 # coding: utf-8
-def heap_sort(L, start, end):
+def heap_adjust(L, start, end):
     temp = L[start]
-    i, j = start, 2 * start
+    i, j = start, 2 * start + 1
     while i <= end:
         if j < end and L[j] < L[j + 1]:
             j += 1
-        if temp < L[j]:
+        if j < end and temp < L[j]:
             L[i] = L[j]
             i = j
-            j = 2 * i
+            j = 2 * i + 1
         else:
             break
     L[i] = temp
 
 
-def heap_adjust():
-    pass
-
-
-data = [0, 7, 6, 9, 8, 5, 10, 3, 7, 1, 4, 2]
-# data = [0, 90, 50, 80, 16, 30, 60, 70, 10, 2]
+data = [7, 6, 9, 8, 5, 10, 3, 7, 1, 4, 2]
+print("初始数据")
 print(data)
 len_data = len(data)
-first_sort_count = int(len_data / 2 -1)
-for i in range(first_sort_count-1):
-    heap_sort(data, first_sort_count - i, len_data - 1)
+first_sort_count = int(len_data / 2 - 1)
+# 构造初始堆
+print("初始堆的构造")
+for i in range(first_sort_count + 1):
+    heap_adjust(data, first_sort_count - i, len_data - 1)
+    print(data)
+
+while len_data - 1 >= 0:
+    data[0], data[len_data - 1] = data[len_data - 1], data[0]
+    print("调整后的堆")
+    heap_adjust(data, 0, len_data - 1)
+    print(data)
+    len_data -= 1
+print("最终数据")
 print(data)
-# heap_sort()
