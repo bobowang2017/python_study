@@ -7,7 +7,9 @@ import re
 # 设置主机列表
 from supervisor.RedisClient import redis_cli
 
-host = {'ip': '47.105.104.233', 'port': 22, 'username': 'root', 'password': '1q2w3e4r!@#'}
+# host = {'ip': '47.105.104.233', 'port': 22, 'username': 'root', 'password': '1q2w3e4r!@#'}
+host = {'ip': '47.92.115.126', 'port': 22, 'username': 'root', 'password': 'KTHCBvsM#6'}
+# host = {'ip': '47.92.27.75', 'port': 22, 'username': 'root', 'password': '1q2w3e4r!Q'}
 
 
 def get_client():
@@ -44,8 +46,8 @@ def draw():
 def monitor():
     client = get_client()
     i = 0
-    while i < 10:
-        time.sleep(10)
+    while i < 2:
+        # time.sleep(10)
         start = time.time()
         handle(client)
         i += 1
