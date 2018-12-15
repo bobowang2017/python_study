@@ -6,16 +6,23 @@
 
 class Solution(object):
     def removeDuplicates(self, nums):
-        total = 0
         i = 0
-        while i < len(nums) - 1:
-            if nums[i] == nums[i + 1]:
-                total += 1
-            i += 1
-        return len(nums) - total
+        tag = 1
+        counter = 0
+        while i < len(nums) - 1 and tag < len(nums):
+            if nums[i] == nums[tag]:
+                tag += 1
+                counter += 1
+                continue
+            else:
+                nums[i + 1] = nums[tag]
+                i += 1
+                tag += 1
+        print(nums[:len(nums) - counter])
+        return len(nums[:len(nums) - counter])
 
 
 if __name__ == '__main__':
     s = Solution()
-    data = s.removeDuplicates([0, 0, 1, 1, 1, 2, 2, 3, 3, 4])
+    data = s.removeDuplicates([1, 1, 2])
     print(data)
