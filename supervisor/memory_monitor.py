@@ -6,9 +6,11 @@ import re
 
 # 设置主机列表
 from supervisor.RedisClient import redis_cli
-
-# host = {'ip': '47.105.104.233', 'port': 22, 'username': 'root', 'password': '1q2w3e4r!@#'}
-host = {'ip': '47.92.115.126', 'port': 22, 'username': 'root', 'password': 'KTHCBvsM#6'}
+# 测试环境
+host = {'ip': '47.105.104.233', 'port': 22, 'username': 'root', 'password': '1qaz2wsx!@#'}
+# 生产环境1
+# host = {'ip': '47.92.115.126', 'port': 22, 'username': 'root', 'password': 'KTHCBvsM#6'}
+# 生产环境2
 # host = {'ip': '47.92.27.75', 'port': 22, 'username': 'root', 'password': '1q2w3e4r!Q'}
 
 
