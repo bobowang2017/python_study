@@ -1,17 +1,16 @@
 # coding: utf-8
+import datetime
+
 import xlrd
 import xlwt
 
 
-def check(begin, end, is_morning, is_night):
-    begin_hour = int(begin[:begin.find(':')])
-    begin_min = int(begin[begin.find(':') + 1:begin.find(':') + 3])
-    if is_morning == '下午' or is_night == '上午':
+def check(begin, end):
+    if begin.hour >= 10:
         return False
-    if begin_hour >= 9 and begin_min > 5:
+    if begin.hour >= 9 and begin.minute > 5:
         return False
-    end_hour = int(end[:end.find(':')])
-    if (end_hour < 6 or end_hour == 12) and is_night == '下午':
+    if end.hour < 18:
         return False
     return True
 
@@ -22,7 +21,7 @@ sheet = sheets[0]
 rows = sheet.nrows
 cols = sheet.ncols
 temp_name = sheet.row_values(1)[1]
-temp_time_min = sheet.row_values(1)[3]
+temp_time_min = datetime.datetime.strptime(str(sheet.row_values(1)[3]).replace('/', '-'), "%Y-%m-%d %H:%M:%S")
 temp_time_max = None
 
 myWorkbook = xlwt.Workbook()
@@ -34,40 +33,41 @@ mySheet.write(0, 2, '当天最后一次打卡时间', myStyle)
 mySheet.write(0, 3, '上班时间', myStyle)
 mySheet.write(0, 4, '下班时间', myStyle)
 mySheet.write(0, 5, '统计结果', myStyle)
+mySheet.write(0, 6, '星期', myStyle)
+week = ['一', '二', '三', '四', '五', '六', '日']
 j = 1
 for i in range(2, rows):
     row = sheet.row_values(i)
-    if row[1] == temp_name and \
-            str(row[3])[:str(row[3]).find('星')] == str(temp_time_min)[:str(temp_time_min).find('星')]:
-        temp_time_max = sheet.row_values(i)[3]
+    clock_time = datetime.datetime.strptime(row[3].replace('/', '-'), "%Y-%m-%d %H:%M:%S")
+    if row[1] == temp_name and clock_time.day == temp_time_min.day:
+        temp_time_max = clock_time
     else:
-        begin = temp_time_min[temp_time_min.find('午') + 1:].strip()
-        is_morning = temp_time_min[temp_time_min.find('午') - 1: temp_time_min.find('午') + 1]
-        end = temp_time_max[temp_time_max.find('午') + 1:].strip()
-        is_night = temp_time_max[temp_time_max.find('午') - 1: temp_time_max.find('午') + 1]
-        result = check(begin, end, is_morning, is_night)
-        print('%s | %s | %s (%s -- %s) | %s ' % (temp_name, temp_time_min, temp_time_max, begin, end, result))
+        begin, end = temp_time_min, temp_time_max
+        result = check(begin, end)
+        print('%s | %s | %s (%s -- %s)  ' % (temp_name, temp_time_min, temp_time_max, begin, end))
         mySheet.write(j, 0, temp_name)
-        mySheet.write(j, 1, temp_time_min)
-        mySheet.write(j, 2, temp_time_max)
-        mySheet.write(j, 3, begin)
-        mySheet.write(j, 4, end)
+        mySheet.write(j, 1, temp_time_min.strftime("%Y-%m-%d %H:%M:%S"))
+        mySheet.write(j, 2, temp_time_max.strftime("%Y-%m-%d %H:%M:%S"))
+        mySheet.write(j, 3, begin.strftime("%Y-%m-%d %H:%M:%S"))
+        mySheet.write(j, 4, end.strftime("%Y-%m-%d %H:%M:%S"))
+        mySheet.write(j, 6, "星期" + week[int(end.strftime("%w")) - 1])
         if result:
             mySheet.write(j, 5, result)
         else:
             mySheet.write(j, 5, result, myStyle)
         j += 1
         temp_name = sheet.row_values(i)[1]
-        temp_time_min = sheet.row_values(i)[3]
+        temp_time_min = datetime.datetime.strptime(sheet.row_values(i)[3].replace('/', '-'), "%Y-%m-%d %H:%M:%S")
 
-result = check(begin, end, is_morning, is_night)
+result = check(begin, end)
 print('%s | %s | %s (%s -- %s) | %s ' % (temp_name, temp_time_min, temp_time_max, begin, end, result))
 mySheet.write(j, 0, temp_name)
 mySheet.write(j, 1, temp_time_min)
 mySheet.write(j, 2, temp_time_max)
 mySheet.write(j, 3, begin)
 mySheet.write(j, 4, end)
-mySheet.write(j, 5, result)
+mySheet.write(j, 6, "星期" + week[int(end.strftime("%w")) - 1])
+# mySheet.write(j, 5, result)
 mySheet.col(0).width = 256 * 15
 mySheet.col(1).width = 256 * 35
 mySheet.col(2).width = 256 * 35
