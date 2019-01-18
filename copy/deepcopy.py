@@ -1,7 +1,7 @@
 import copy
 
 will = ["Will", 28, ["Python", "C#", "JavaScript"]]
-wilber = copy.copy(will)
+wilber = copy.deepcopy(will)
 
 print(id(will))
 print(will)
@@ -9,12 +9,12 @@ print([id(ele) for ele in will])
 print(id(wilber))
 print(wilber)
 print([id(ele) for ele in wilber])
-print('='*10)
+print('='*60)
 will[0] = "Wilber"
 will[2].append("CSS")
 print(id(will))
 print(will)
-print([id(ele) for ele in will])
+print([id(ele)for ele in will])
 print(id(wilber))
 print(wilber)
-print([id(ele) for ele in wilber])
+print([id(ele)for ele in wilber])
