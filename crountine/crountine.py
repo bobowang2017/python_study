@@ -5,7 +5,7 @@ def consumer():
     r = ''
     while True:
         n = yield r
-        print n
+        print(n)
         if not n:
             return
         print('[CONSUMER] Consuming %s...' % n)
