@@ -18,6 +18,7 @@ class Solution:
         for i in range(n):
             sum += nums[i]
             if sum - k in pre_sum:
+                # 判断元素是否在字典的key中，Python3直接key in dict即可，也可以key in dict.keys()，但是后者要生成一个列表，运行效率低
                 result += pre_sum.get(sum - k)
             pre_sum[sum] = pre_sum.get(sum, 0) + 1
         return result
