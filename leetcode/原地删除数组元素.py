@@ -25,7 +25,7 @@ class Solution(object):
                 nums[j] = nums[i]
                 j += 1
             i += 1
-        return nums[:j]
+        return len(nums[:j])
 
 
 solution = Solution()
