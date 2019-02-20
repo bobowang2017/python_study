@@ -28,6 +28,9 @@ def add(self, x, y):
     time.sleep(10)
     logger.info(x + y)
     if x + y == 10:
+        print("*"*20)
+        print(self.max_retries)
+        print("*" * 20)
         raise self.retry(max_retries=3, countdown=10)
 
 
