@@ -12,7 +12,7 @@ Linux环境下是不存在这个问题的，只有win10环境下会出现
 ##解决方法
 1、虚拟环境中安装eventlet(pip install eventlet)
 
-2、启动celery服务的时候加个参数(celery -A <mymodule> worker -l info -P eventlet)
+2、启动celery服务的时候加个参数(celery -A mymodule worker -l info -P eventlet)
 
 ##启动celery服务的其他方式
 
