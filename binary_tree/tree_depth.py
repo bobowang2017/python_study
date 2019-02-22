@@ -15,7 +15,7 @@ class Depth(object):
             return 0
         left_depth = self.max_depth(root.lchild)
         right_depth = self.max_depth(root.rchild)
-        return min(left_depth, right_depth) + 1
+        return 1 + min(left_depth, right_depth) if left_depth and right_depth else 1 + left_depth + right_depth
 
 
 if __name__ == '__main__':
