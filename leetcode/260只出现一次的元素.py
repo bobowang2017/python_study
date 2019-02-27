@@ -9,27 +9,22 @@ from functools import reduce
 
 
 class Solution(object):
-    def reduce(self, nums):
-        i, result = 1, nums[0]
-        while i < len(nums):
-            result ^= nums[i]
-            i += 1
-        return result
-
     def singleNumber(self, nums):
         """
         :type nums: List[int]
         :rtype: List[int]
         """
-        result = self.reduce(nums)
-        temp = '{:08b}'.format(result)
-        for index, s in enumerate(temp):
-            if s == '1':
-                break
-        bin_data = ['{:08b}'.format(num) for num in nums]
-        result1 = [int(data, 2) for data in bin_data if data[index] == '0']
-        result2 = [int(data, 2) for data in bin_data if data[index] == '1']
-        return [self.reduce(result1), self.reduce(result2)]
+        acc = 0
+        for i in nums:
+            acc ^= i
+        n = len(bin(acc)) - 3
+        a, b = 0, 0
+        for i in nums:
+            if i >> n & 1:
+                a ^= i
+            else:
+                b ^= i
+        return b, a
 
 
 if __name__ == '__main__':
