@@ -14,7 +14,7 @@ class Solution(object):
         :rtype: int
         """
         l, sum = len(nums), 0
-        for i in range(l+1):
+        for i in range(l + 1):
             sum ^= i
             if i < l:
                 sum ^= nums[i]
@@ -22,5 +22,5 @@ class Solution(object):
 
 
 solution = Solution()
-result = solution.missingNumber([3,0,1,2,5])
+result = solution.missingNumber([3, 0, 1, 2, 5])
 print(result)
