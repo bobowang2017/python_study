@@ -4,7 +4,8 @@ class Solution(object):
         :type nums: List[int]
         :rtype: int
         """
-        first = second = third = -65535
+        import sys
+        first = second = third = -sys.maxsize
         for num in nums:
             if num > first:
                 first, second, third = num, first, second
@@ -12,7 +13,8 @@ class Solution(object):
                 second, third = num, second
             elif third < num < second:
                 third = num
-        return third if third != -65535 else first
+        print(-sys.maxsize)
+        return third if third != -sys.maxsize else first
 
 
 if __name__ == '__main__':
