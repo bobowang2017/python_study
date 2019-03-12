@@ -12,25 +12,27 @@
 
 class Solution(object):
     def findNthDigit(self, n):
-        i = count = 1
-        while True:
-            tmp = str(i)
-            l = len(tmp)
-            if count + l < n:
-                count += l
-            elif count <= n < count + l:
-                j = 0
-                while j < l:
-                    count += 1
-                    if count == n:
-                        return str(i)[j + 1]
-                    j += 1
-            elif count + l == n:
-                return str(i)[-1]
-            i += 1
+        """
+        :type n: int
+        :rtype: int
+        """
+        length = 1
+        base = 1
+        while (n > 9 * length * base):
+            n -= 9 * length * base
+            length += 1
+            base *= 10
+        curNum = (n - 1) // length + base
+        point = (n - 1) % length
+        digit = 0
+        while (point < length):
+            digit = curNum % 10
+            curNum //= 10
+            point += 1
+        return digit
 
 
 if __name__ == '__main__':
     s = Solution()
-    result = s.findNthDigit(18)
+    result = s.findNthDigit(1000000000)
     print(result)
