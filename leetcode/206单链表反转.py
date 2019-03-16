@@ -23,9 +23,11 @@ def linklist_init(data):
 def display(head):
     if not isinstance(head, Node):
         raise Exception('Params Error')
+    result = []
     while head:
-        # print(head.data)
+        result.append(head.data)
         head = head.next
+    print(result)
 
 
 def reverse(head):
