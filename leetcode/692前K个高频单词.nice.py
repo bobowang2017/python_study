@@ -17,6 +17,10 @@
 
 
 class Solution(object):
+
+    def sort(self, data):
+        pass
+
     def topKFrequent(self, words, k):
         """
         :type words: List[str]
@@ -27,11 +31,11 @@ class Solution(object):
         for word in words:
             result[word] = 1 + result[word] if word in result.keys() else 1
         print(result)
-        data = [(k, v) for (k, v) in sorted(result.items(), key=lambda n: (n[1]), reverse=True)][:k]
+        data = [(k, v) for (k, v) in sorted(result.items(), key=lambda n: (-n[1], n[0]))][:k]
         print(data)
         return list(map(lambda x: x[0], data))
 
 
 solution = Solution()
-result = solution.topKFrequent(["i", "love", "leetcode", "i", "love", "coding"], 2)
+result = solution.topKFrequent(["i", "love", "leetcode", "i", "love", "coding"], 3)
 print(result)
