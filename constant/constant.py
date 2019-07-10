@@ -10,3 +10,5 @@ class Constant(object):
 
 
 const = Constant()
+const.MY_CONSTANT = "CHINA"
+const.MY_SECOND_CONSTANT = "RUSSIA"
