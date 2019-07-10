@@ -23,17 +23,14 @@ class MilkTea(Coffee):
 
 
 class CoffeeFactory(object):
+    factory_type = ["CoffeeLatte", "MochaCoffee", "MilkTea"]
 
     @classmethod
     def create_coffee(cls, _type):
-        if _type == "coffee_latte":
-            return CoffeeLatte()
-        elif _type == "mocha_coffee":
-            return MochaCoffee()
-        elif _type == "milk_tea":
-            return MilkTea()
-        else:
+        if _type not in cls.factory_type:
             raise Exception('{}类型不存在'.format(_type))
+        # eval（类名）返回的是一个class类型的对象
+        return eval(_type)()
 
 
 class App(object):
@@ -46,5 +43,5 @@ class App(object):
 
 if __name__ == '__main__':
     app = App()
-    app.coffee_make('coffee_latte')
-    app.coffee_make('milk_tea')
+    app.coffee_make('MochaCoffee')
+    app.coffee_make('MilkTea')
