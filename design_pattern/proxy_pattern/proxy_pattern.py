@@ -15,6 +15,9 @@ class Agent(object):
     def __init__(self):
         self.actor = Actor()
 
+    def set_actor(self, actor):
+        self.actor = actor
+
     def work(self):
         if self.actor.is_empty:
             self.actor.show_film()
