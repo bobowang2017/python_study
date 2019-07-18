@@ -14,14 +14,14 @@ def _wrapper_harbor(func):
     def __wrapper_harbor(*args, **kwargs):
         try:
             result = func(*args, **kwargs)
-            print(json.loads(result.text))
-            if not result:
-                raise Exception("请求harbor资源的方法必须带返回值")
-            if result.status_code != 200:
-                raise Exception(result.text)
-            return json.loads(result.text)
         except Exception as e:
             raise e
+        print(json.loads(result.text))
+        if not result:
+            raise Exception("请求harbor资源的方法必须带返回值")
+        if result.status_code != 200:
+            raise Exception(result.text)
+        return json.loads(result.text)
     return __wrapper_harbor
 
 
