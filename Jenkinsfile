@@ -1,4 +1,5 @@
 node {
+    logstashSend failBuild: true, maxLines: 1000
     stage('build') {
        echo 'I only build on the master branch'
     }
