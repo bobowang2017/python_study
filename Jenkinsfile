@@ -10,3 +10,12 @@ node {
        echo 'I only deploy on the master branch'
     }
 }
+timestamps {
+  logstash {
+    node('somelabel') {
+      sh'''
+      echo 'Hello, World!'
+      '''
+    }
+  }
+}
