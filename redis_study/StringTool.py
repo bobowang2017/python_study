@@ -36,3 +36,44 @@ class StringTest(unittest.TestCase):
         """
 
         return self.client.getset(self.key, "value")
+
+    def test_get_bit(self):
+        """
+        对 key 所储存的字符串值，获取指定偏移量上的位(bit)
+        :return:
+        """
+        return self.client.getbit(name="", offset=0)
+
+    def test_mget(self):
+        """
+        获取所有(一个或多个)给定 key 的值
+        :return:
+        """
+        return self.client.mget(keys=["key1", "key2"])
+
+    def test_set_bit_key(self):
+        pass
+
+    def test_setex(self):
+        """
+        将值 value 关联到 key ，并将 key 的过期时间设为 seconds (以秒为单位)
+        :return:
+        """
+        return self.client.setex(self.key, "value", 10)
+
+    def test_setnx(self):
+        """
+        只有在 key 不存在时设置 key 的值
+        :return:
+        """
+        return self.client.setnx(self.key, "value")
+
+    def test_setrange(self):
+        pass
+
+    def test_strlen(self):
+        """
+        返回 key 所储存的字符串值的长度
+        :return:
+        """
+        return self.client.strlen(self.key)
