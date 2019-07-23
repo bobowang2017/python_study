@@ -1,11 +1,11 @@
-Jenkinsfile (Declarative Pipeline)
-pipeline {
-    agent { docker 'python:3.5.1' }
-    stages {
-        stage('build') {
-            steps {
-                sh 'python --version'
-            }
-        }
+node {
+    stage('build') {
+       echo 'I only build on the master branch'
+    }
+    stage('test') {
+       echo 'I only test on the master branch'
+    }
+    stage('deploy') {
+       echo 'I only deploy on the master branch'
     }
 }
