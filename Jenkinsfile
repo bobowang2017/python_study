@@ -1,21 +1,23 @@
-node {
-    logstashSend failBuild: true, maxLines: 1000
-    stage('build') {
-       echo 'I only build on the master branch'
+pipeline {
+    agent none 
+    stages {
+        stage('Example Build') {
+            agent {
+                docker 'maven:3-alpine'
+            }
+            steps {
+                echo 'Hello, Maven'
+                sh 'mvn --version'
+            }
+        }
+        stage('Example Test') {
+            agent {
+                docker 'openjdk:8-jre'
+            }
+            steps {
+                echo 'Hello, JDK'
+                sh 'java -version'
+            }
+        }
     }
-    stage('test') {
-       echo 'I only test on the master branch'
-    }
-    stage('deploy') {
-       echo 'I only deploy on the master branch'
-    }
-}
-timestamps {
-  logstash {
-    node('somelabel') {
-      sh'''
-      echo 'Hello, World!'
-      '''
-    }
-  }
 }
