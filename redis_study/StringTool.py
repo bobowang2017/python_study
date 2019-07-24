@@ -77,3 +77,42 @@ class StringTest(unittest.TestCase):
         :return:
         """
         return self.client.strlen(self.key)
+
+    def test_sget(self):
+        """
+        同时设置一个或多个 key-value 对
+        :return:
+        """
+        # return self.client.mset(*args, **kwargs)
+        pass
+
+    def test_msetnx(self):
+        pass
+
+    def test_incr_key(self):
+        """
+        将 key 中储存的数字值增一
+        :return:
+        """
+        return self.client.incr(self.key)
+
+    def test_incr_by_key(self):
+        """
+        将 key 所储存的值加上给定的增量值（increment）
+        :return:
+        """
+        return self.client.incrby(self.key, 10)
+
+    def test_decr_key(self):
+        """
+        将 key 中储存的数字值减一
+        :return:
+        """
+        return self.client.decr(self.key)
+
+    def test_append_key(self):
+        """
+        如果 key 已经存在并且是一个字符串， APPEND 命令将指定的 value 追加到该 key 原来值（value）的末尾
+        :return:
+        """
+        return self.client.append(self.key, "value")
