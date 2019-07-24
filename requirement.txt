@@ -8,4 +8,5 @@ paramiko==2.4.2
 redis==2.10.6
 elasticsearch==6.3.1
 pysnooper==0.0.31
+python-jenkins
 # pip install XXX -i https://pypi.tuna.tsinghua.edu.cn/simple some-package
