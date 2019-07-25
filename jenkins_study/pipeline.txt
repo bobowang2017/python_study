@@ -1,0 +1,42 @@
+pipeline{
+    agent{
+        node {
+            label "master"
+        }
+    }
+    stages {
+        stage('Start') {
+            steps{
+                echo "Start Pipeline"
+                sh "ping -c 3 www.baidu.com"
+            }
+        }
+        stage("GitSCM"){
+            steps{
+                echo "Start GitSCM"
+                git "https://github.com/zeyangli/springboot-helloworld.git"
+                echo "End GitSCM"
+            }
+        }
+        stage("MavenBuild"){
+            steps{
+                echo "Start MavenBuild"
+                sh "mvn clean install"
+                echo "End MavenBuild"
+                archiveArtifacts "target/*.jar"
+                sh "mkdir -p /result/demo &&cd target &&cp *.jar /result/demo"
+            }
+        }
+        stage("Test"){
+            steps{
+                echo "Start Test"
+                sh "ping -c 3 www.hao123.com"
+            }
+        }
+        stage("Deploy"){
+            steps{
+                echo "Start Deploy"
+            }
+        }
+    }
+}
