@@ -1,0 +1,421 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.12">
+    <description></description>
+    <keepDependencies>false</keepDependencies>
+    <properties>
+        <jenkins.model.BuildDiscarderProperty>
+            <strategy class="hudson.tasks.LogRotator">
+                <daysToKeep>3</daysToKeep>
+                <numToKeep>5</numToKeep>
+                <artifactDaysToKeep>-1</artifactDaysToKeep>
+                <artifactNumToKeep>-1</artifactNumToKeep>
+            </strategy>
+        </jenkins.model.BuildDiscarderProperty>
+        <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+            <triggers>
+                <hudson.triggers.TimerTrigger>
+                    <spec>TZ=Asia/Shanghai
+                    </spec>
+                </hudson.triggers.TimerTrigger>
+                <com.dabsquared.gitlabjenkins.GitLabPushTrigger plugin="gitlab-plugin@1.4.8">
+                    <spec></spec>
+                    <triggerOnPush>true</triggerOnPush>
+                    <triggerOnMergeRequest>true</triggerOnMergeRequest>
+                    <triggerOnPipelineEvent>false</triggerOnPipelineEvent>
+                    <triggerOnAcceptedMergeRequest>false</triggerOnAcceptedMergeRequest>
+                    <triggerOnClosedMergeRequest>false</triggerOnClosedMergeRequest>
+                    <triggerOpenMergeRequestOnPush>never</triggerOpenMergeRequestOnPush>
+                    <triggerOnNoteRequest>true</triggerOnNoteRequest>
+                    <noteRegex>Jenkins please retry a build</noteRegex>
+                    <ciSkip>true</ciSkip>
+                    <skipWorkInProgressMergeRequest>true</skipWorkInProgressMergeRequest>
+                    <setBuildDescription>true</setBuildDescription>
+                    <branchFilterType>All</branchFilterType>
+                    <includeBranchesSpec></includeBranchesSpec>
+                    <excludeBranchesSpec></excludeBranchesSpec>
+                    <targetBranchRegex></targetBranchRegex>
+                    <secretToken>123dao789</secretToken>
+                </com.dabsquared.gitlabjenkins.GitLabPushTrigger>
+            </triggers>
+        </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+    </properties>
+    <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.36">
+        <script>
+            import groovy.json.*
+            def dockerfile_data = ''
+            def callback_data = ''
+            def group = ''
+            def app_name = ''
+            def project_name = 'ftest'
+            def application_name = 'csdemo'
+            def version = ''
+            def image_name = [:]
+            def image_path = ''
+            def order = ''
+            def callback_datamap =[:]
+            def pipeline_id = 1877
+            def callback_url = 'http://localhost:5000/api/pipeline/'+pipeline_id+'/callback'
+            def docker_server = ''
+            def dockerfile_url = ''
+            def docker_user = ''
+            def docker_passwd = ''
+            def sonar_report_url = ''
+            def credentialid = ''
+            def nexus_repo_type = ''
+            def image_status = 'empty'
+            def config_version = 'default'
+            def opentracing_status = false
+            pipeline{
+                agent{
+                    node {
+                        label "jenkins_node-10.175.1.151"
+                    }
+                }
+                stages {
+                    stage('Start') {
+                        steps {
+                            script{
+                                def datamap = [:]
+                                datamap.put("application_name",env.JOB_NAME)
+                                datamap.put("build_num",currentBuild.number)
+                                datamap.put("version",version)
+                                datamap.put("status","success")
+                                datamap.put("type","start")
+                                datamap.put("pipeline_id",pipeline_id)
+                                datamap.put("image_name",image_name)
+                                datamap.put("order",order)
+                                callback_data= JsonOutput.toJson(datamap)
+                                def opentracing_data=sh(script: "curl -l -H 'Content-type: application/json' -X POST -d
+                                '''${callback_data}''' '''${callback_url}'''", returnStdout: true).trim()
+                                echo opentracing_data
+                                if (opentracing_data.contains("#opentracing_use#")){
+                                    opentracing_status=true
+                                }
+                            }
+                            sh "curl -l -H 'Content-type: application/json' -X POST -d '''${callback_data}''' '''${callback_url}'''"
+                        }
+                    }
+
+                    stage('GitSCM') {
+                        steps {
+                            dir('application'){
+                                script{
+                                    credentialid = 'devops'
+                                }
+                                checkout([$class: 'GitSCM',branches: [[name: "*/dev"]],doGenerateSubmoduleConfigurations: false,extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId:"devops",url: "ssh://git@10.176.139.10:8022/ftest/csdemo.git"]]])
+                            }
+                        }
+                    }
+
+                    stage("GitStats"){
+                        steps {
+                            script {
+                                docker_server = 'plat-ecloud01-mgmt-repo01:5005'
+                            }
+                            sh "docker run -i --rm -v "+'$(pwd)'+"/application:/application -v "+'$(pwd)'+"/gitstatsresult:/result ${docker_server}/devops/gitstats:latest /application /result"
+                            publishHTML(
+                                target:[
+                                    allowMissing:false,
+                                    alwaysLinkToLastBuild: true,
+                                    keepAll:true,
+                                    includes:'**/*',
+                                    reportDir: 'gitstatsresult/',
+                                    reportFiles: 'index.html',
+                                    reportName: 'gitstat-online-report',
+                                    reportTitles: 'gitstat-online-report'
+                                ]
+                            )
+                        }
+                    }
+
+                    stage('MavenBuild'){
+                        steps {
+                            dir('application') {
+                                script {
+                                    docker_server = 'plat-ecloud01-mgmt-repo01:5005'
+                                    dockerfile_url = 'http://localhost:5000/api/pipeline/'+pipeline_id+'/docker/dockerfile'
+                                    docker_user = ''
+                                    docker_passwd = ''
+                                    order=1
+                                    def pom_data= sh(script: "docker run -i --rm -v /apps/data/maven/m2:/root/.m2 -v /apps/data/maven/conf:/usr/share/maven/conf -v "+'$(pwd)'+":/usr/src/mymaven -w /usr/src/mymaven ${docker_server}/devops/maven:3-ibmjava-8-alpine mvn clean -q -Dexec.executable=echo -Dexec.args='\${project.artifactId},\${project.version}' --non-recursive exec:exec", returnStdout: true).trim()
+                                    def pom_artifactId_version=pom_data.split(',')
+                                    app_name=pom_artifactId_version[0]
+                                    version=pom_artifactId_version[1]
+                                    if (version.contains('{project.version}')) {
+                                        version=''
+                                    }
+                                    if (opentracing_status) {
+                                        sh "sed -i '/&lt;\\/dependencies&gt;/i\\&lt;dependency&gt;\\n\\t&lt;groupId&gt;io.opentracing.contrib&lt;\\/groupId&gt;\\n\\t&lt;artifactId&gt;opentracing-spring-jaeger-cloud-starter&lt;\\/artifactId&gt;\\n\\t&lt;version&gt;0.2.1&lt;\\/version&gt;\\n&lt;\\/dependency&gt;' ./pom.xml"
+                                    }
+                                }
+                                sh "sed -i 's#&lt;finalName&gt;.*&lt;/finalName&gt;#&lt;finalName&gt;\${project.artifactId}-\${project.version}&lt;/finalName&gt;#g' ./pom.xml"
+                                sh "docker run -i --rm -v /apps/data/maven/m2:/root/.m2 -v /apps/data/maven/conf:/usr/share/maven/conf -v "+'$(pwd)'+":/usr/src/mymaven -w /usr/src/mymaven ${docker_server}/devops/maven:3-ibmjava-8-alpine mvn clean package -Dmaven.test.skip=true | tee build_log.log"
+                                script {
+                                    def build_buffer = readFile("build_log.log")
+                                    def success_status = build_buffer =~ 'BUILD SUCCESS'
+                                    if (success_status){
+                                        echo "build success!"
+                                    } else {
+                                        build_buffer = ''
+                                        currentBuild.result = "failure"
+                                        error "BUILD ERROR!"
+                                    }
+                                    build_buffer = ''
+                                }
+                                archiveArtifacts 'target/*.jar'
+                                script {
+                                    if (fileExists('target/surefire-reports')) {
+                                        junit 'target/surefire-reports/*.xml'
+                                    }
+                                }
+                                sh 'rm build_log.log'
+                            }
+                        }
+                    }
+
+                    stage("SonarCheck"){
+                        steps {
+                            sh "docker run -i --rm -v "+'$(pwd)'+"/application:/application --workdir /application
+                            ${docker_server}/devops/sonar-scanner:latest -Dsonar.host.url=http://10.176.139.2:9000 -Dsonar.projectKey=${project_name}-${application_name} -Dsonar.sources=./ -Dsonar.java.libraries=/opt/jar/*.jar -Dsonar.java.binaries=./target -Dsun.jnu.encoding=UTF-8"
+                            script {
+                                sonar_report_url = "http://10.176.139.2:9000/dashboard/index/${project_name}-${application_name}"
+                            }
+                        }
+                    }
+
+                    stage('GitPushTag') {
+                        steps {
+                            dir('application') {
+                                sshagent([credentialid]) {
+                                    sh "git tag -a ${env.JOB_NAME}-e.${currentBuild.number} -m 'application: ${application_name}; job:
+                                    ${env.JOB_NAME}; tag: ${currentBuild.number}' "
+                                    sh "git push origin --tag"
+                                    sh "git tag -d ${env.JOB_NAME}-e.${currentBuild.number}"
+                                }
+                            }
+                        }
+                    }
+
+                    stage('DockerBuild'){
+                        steps {
+                            dir('application') {
+                                script{
+                                    def datamap = [:]
+                                    datamap.put("version",version)
+                                    datamap.put("app_name",app_name)
+                                    image_name.put("runtime",docker_server+"/"+project_name+"/"+application_name+":"+version+"."+currentBuild.number)
+                                    datamap.put("type","runtime")
+                                    datamap.put("jenkins_job_name",env.JOB_NAME)
+                                    datamap.put("pipeline_id",pipeline_id)
+                                    dockerfile_data = JsonOutput.toJson(datamap)
+                                }
+                                sh "curl -H 'Content-type: application/json' -X POST '''${dockerfile_url}''' -d '''${dockerfile_data}'''>tmp.json"
+                                sh "sed 's/^/echo -e &amp;/g' tmp.json >dockerfile_build.sh &amp;&amp; chmod +x dockerfile_build.sh &amp;&amp;/bin/bash
+                                ./dockerfile_build.sh >Dockerfile"
+                                sh "rm dockerfile_build.sh tmp.json"
+                                sh "docker build -t ${application_name}:${version}.${currentBuild.number} ."
+                                sh "docker tag ${application_name}:${version}.${currentBuild.number}
+                                ${docker_server}/${project_name}/${application_name}:${version}.${currentBuild.number}"
+                                sh "docker push ${docker_server}/${project_name}/${application_name}:${version}.${currentBuild.number}"
+                                sh "docker rmi ${docker_server}/${project_name}/${application_name}:${version}.${currentBuild.number} "
+                                script{
+                                    image_status="exist"
+                                    callback_datamap =[:]
+                                    callback_datamap.put("jenkins_job_name",env.JOB_NAME)
+                                    callback_datamap.put("type","build")
+                                    callback_datamap.put("status","success")
+                                    callback_datamap.put("build_num",currentBuild.number)
+                                    callback_datamap.put("version",version)
+                                    callback_datamap.put("pipeline_id",pipeline_id)
+                                    callback_datamap.put("image_name",image_name)
+                                    callback_datamap.put("result",sonar_report_url)
+                                    callback_datamap.put("order",1)
+                                    callback_data = JsonOutput.toJson(callback_datamap)
+                                }
+                                sh "curl -l -H 'Content-type: application/json' -X POST -d '''${callback_data}''' '''${callback_url}'''"
+                            }
+                        }
+                    }
+
+                    stage('Deploy(dev)'){
+                        steps{
+                            script{
+                                docker_server = 'plat-ecloud01-mgmt-repo01:5000'
+                                sh "docker tag ${application_name}:${version}.${currentBuild.number}
+                                ${docker_server}/${project_name}/${application_name}:${version}.${currentBuild.number}"
+                                sh "docker push ${docker_server}/${project_name}/${application_name}:${version}.${currentBuild.number}"
+                                sh "docker rmi ${docker_server}/${project_name}/${application_name}:${version}.${currentBuild.number} "
+                                def deploy_data = ''
+                                def deploy_url= 'http://localhost:5000/api/pipeline/'+pipeline_id+'/deploy'
+                                order=2
+                                image_name.put("runtime",docker_server+"/"+project_name+"/"+application_name+":"+version+"."+currentBuild.number)
+                                def data= [:]
+                                data.put("type","deploy")
+                                data.put("image_name",image_name)
+                                data.put("order",order)
+                                data.put("pipeline_id",pipeline_id)
+                                data.put("version",version)
+                                data.put("deploy_resource","KUBERNETES")
+                                data.put("config_version",config_version)
+                                data.put("build_num",currentBuild.number)
+                                deploy_data=JsonOutput.toJson(data)
+                                def deploy_result = sh(script: "curl -H 'Content-type: application/json' -X POST '''${deploy_url}''' -d
+                                '''${deploy_data}'''", returnStdout: true).trim()
+                                if (!deploy_result.contains("#deploy_success#") || deploy_result.contains("exceptions") || deploy_result.contains("#deploy_failure#")){
+                                    echo deploy_result
+                                    currentBuild.result = "failure"
+                                    error "DEPLOY ERROR!"
+                                }
+                            }
+                        }
+                    }
+
+                    stage('HealthCheck(dev)'){
+                        steps{
+                            script{
+                                def deploy_data = ''
+                                def deploy_url= 'http://localhost:5000/api/pipeline/'+pipeline_id+'/deploy'
+                                order=2
+                                //def callback_url = 'http://localhost:5000/api/pipeline/'+pipeline_id+'/callback'
+                                callback_datamap =[:]
+                                def status_data = [:]
+                                def status_info = ''
+                                status_data.put("type","status")
+                                status_data.put("image_name",image_name)
+                                status_data.put("order",order)
+                                status_data.put("pipeline_id",pipeline_id)
+                                status_data.put("version",version)
+                                status_data.put("build_num",currentBuild.number)
+                                status_info=JsonOutput.toJson(status_data)
+                                def deploy_status_result = ''
+                                def check_status=false
+                                for (i=0 ;i&lt;120; i++) {
+                                    deploy_status_result = sh(script: "curl -H 'Content-type: application/json' -X POST '''${deploy_url}''' -d '''${status_info}'''", returnStdout: true).trim()
+                                    if (deploy_status_result.contains("#deploy_status_success#")){
+                                        callback_datamap.put("status","success")
+                                        callback_datamap.put("result","success")
+                                        check_status=true
+                                        sleep(3)
+                                        break
+                                    }
+                                    sleep(5)
+                                }
+                                if (!check_status) {
+                                    callback_datamap.put("status","failed")
+                                    callback_datamap.put("result","failed")
+                                    currentBuild.result = "failure"
+                                    error "DEPLOY STATUS ERROR!"
+                                }
+                                callback_datamap.put("jenkins_job_name",env.JOB_NAME)
+                                callback_datamap.put("type","deploy")
+                                callback_datamap.put("build_num",currentBuild.number)
+                                callback_datamap.put("version",version)
+                                callback_datamap.put("pipeline_id",pipeline_id)
+                                callback_datamap.put("image_name",image_name)
+                                callback_datamap.put("order",order)
+                                callback_data = JsonOutput.toJson(callback_datamap)
+                            }
+                            sh "curl -l -H 'Content-type: application/json' -X POST -d '''${callback_data}''' '''${callback_url}'''"
+                        }
+                    }
+
+                    stage('RegisterConsul(dev)'){
+                        steps{
+                            script{
+                                def deploy_data = ''
+                                def deploy_url= 'http://localhost:5000/api/pipeline/'+pipeline_id+'/deploy'
+                                order=2
+                                //def callback_url = 'http://localhost:5000/api/pipeline/'+pipeline_id+'/callback'
+                                callback_datamap =[:]
+                                def register_data = [:]
+                                def register_info = ''
+                                register_data.put("type","register")
+                                register_data.put("image_name",image_name)
+                                register_data.put("order",order)
+                                register_data.put("pipeline_id",pipeline_id)
+                                register_data.put("version",version)
+                                register_data.put("build_num",currentBuild.number)
+                                register_info=JsonOutput.toJson(register_data)
+                                def check_register_status=false
+                                def deploy_register_result = sh(script: "curl -H 'Content-type: application/json' -X POST
+                                '''${deploy_url}''' -d '''${register_info}'''", returnStdout: true).trim()
+                                if (deploy_register_result.contains("#deploy_register_success#")){
+                                    callback_datamap.put("status","success")
+                                    callback_datamap.put("result","success")
+                                    check_register_status=true
+                                    }
+                                else {
+                                    callback_datamap.put("status","failed")
+                                    callback_datamap.put("result","failed")
+                                    currentBuild.result = "failure"
+                                    error "DEPLOY REGISTER ERROR!"
+                                }
+                                callback_datamap.put("jenkins_job_name",env.JOB_NAME)
+                                callback_datamap.put("type","deploy")
+                                callback_datamap.put("registry_status",check_register_status)
+                                callback_datamap.put("build_num",currentBuild.number)
+                                callback_datamap.put("version",version)
+                                callback_datamap.put("pipeline_id",pipeline_id)
+                                callback_datamap.put("image_name",image_name)
+                                callback_datamap.put("order",order)
+                                callback_data = JsonOutput.toJson(callback_datamap)
+                            }
+                            sh "curl -l -H 'Content-type: application/json' -X POST -d '''${callback_data}''' '''${callback_url}'''"
+                        }
+                    }
+
+                    stage('End') {
+                        steps {
+                            echo 'Pipeline End!'
+                        }
+                    }
+                }
+                post{
+                    failure {
+                        script{
+                            if (image_name.containsKey("runtime") &amp;&amp; image_status=="exist") {
+                                sh "docker rmi -f ${application_name}:${version}.${currentBuild.number} "
+                            }
+                            def datamap = [:]
+                            datamap.put("application_name",env.JOB_NAME)
+                            datamap.put("build_num",currentBuild.number)
+                            datamap.put("version",version)
+                            datamap.put("status","failure")
+                            datamap.put("type","finish")
+                            datamap.put("pipeline_id",pipeline_id)
+                            datamap.put("image_name",image_name)
+                            datamap.put("order",order)
+                            datamap.put("artifactId",app_name)
+                            datamap.put("groupId",group)
+                            callback_data= JsonOutput.toJson(datamap)
+                        }
+                        sh "curl -l -H 'Content-type: application/json' -X POST -d '''${callback_data}''' '''${callback_url}'''"
+                    }
+                    success {
+                        script{
+                            if (image_name.containsKey("runtime") &amp;&amp; image_status=="exist") {
+                                sh "docker rmi -f ${application_name}:${version}.${currentBuild.number} "
+                            }
+                            def datamap = [:]
+                            datamap.put("application_name",env.JOB_NAME)
+                            datamap.put("build_num",currentBuild.number)
+                            datamap.put("version",version)
+                            datamap.put("status","success")
+                            datamap.put("type","finish")
+                            datamap.put("pipeline_id",pipeline_id)
+                            datamap.put("image_name",image_name)
+                            datamap.put("order",order)
+                            datamap.put("artifactId",app_name)
+                            datamap.put("groupId",group)
+                            callback_data= JsonOutput.toJson(datamap)
+                        }
+                        sh "curl -l -H 'Content-type: application/json' -X POST -d '''${callback_data}''' '''${callback_url}'''"
+                    }
+                }
+            }
+        </script>
+        <sandbox>true</sandbox>
+    </definition>
+    <triggers/>
+    <disabled>false</disabled>
+</flow-definition>
