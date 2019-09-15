@@ -4,7 +4,7 @@ import functools
 from types import MethodType
 
 
-def common_reset(func):
+def dynamic_param(func):
     @functools.wraps(func)
     def _wrapper(*args, **kwargs):
         result = func(*args, **kwargs)
@@ -46,12 +46,12 @@ class BuildParam(Param):
             "PASSWORD": "1233!@##"
         }
 
-    @common_reset
+    @dynamic_param
     def java(self, **kwargs):
         self.__dict__['TEST_WHO'] = "java"
         return self.__dict__
 
-    @common_reset
+    @dynamic_param
     def spring_boot(self, **kwargs):
         self.__dict__['TEST'] = "spring-boot"
         return self.__dict__
