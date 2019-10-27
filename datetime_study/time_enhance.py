@@ -28,7 +28,8 @@ class TimeArrow(unittest.TestCase):
 
     def test_get_instance(self):
         print(arrow.get())
-        print(arrow.get(datetime(2019, 10, 26)))
+        print(arrow.get(datetime(2019, 10, 25)).humanize(locale="zh"))
         print(arrow.get(date(2018, 7, 24)))
         print(arrow.get("2018-08-11 12:30:56"))
         print(arrow.get("18-08-11 12:30:56", "YY-MM-DD HH:mm:ss"))
+
