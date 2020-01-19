@@ -10,3 +10,4 @@ queue.maybe_bind(conn)
 queue.declare()
 producer.publish("Hello there!")
 
+print('test')
