@@ -12,6 +12,12 @@ class GitlabTest(unittest.TestCase):
         self.private_token = 'owph-Zc4mFuBPgvCpJei'
         self.private_token = 'G4emXE-3Ag1Mx_PLYP-N'
 
+        self.url = "http://git.virtueit.net/",
+        self.private_token = "zb6DU6NbxL5uqSd6HseT"
+
+        self.url = "http://10.176.139.10:8085/"
+        self.private_token = "h1gNmtof6j2zx_Fgxtwn"
+
         try:
             self.gl = gitlab.Gitlab(self.url, private_token=self.private_token)
         except Exception as e:
@@ -133,6 +139,11 @@ class GitlabTest(unittest.TestCase):
         }
         resp = requests.get(url, headers=headers)
         print(resp.text)
+
+    def test_get_project_branches(self):
+        project = self.gl.projects.get('devops/test2.3.0').branches.list()
+        # res = project.branches.list()
+        print(project)
 
 
 if __name__ == '__main__':
