@@ -3,7 +3,7 @@ import unittest
 
 class ListSliceTest(unittest.TestCase):
     """
-    step：正负数均可，其绝对值大小决定了切取数据时的‘‘步长”，而正负号决定了“切取方向”，
+    step：正负数均可，其绝对值大小决定了切取数据时的‘‘步长”，而正负号决定了“切取方向”，首要要看方向
     正表示“从左往右”取值，
     负表示“从右往左”取值。
     当step省略时，默认为1，即从左往右以步长1取值。
@@ -26,6 +26,7 @@ class ListSliceTest(unittest.TestCase):
         print(self.arr[3:9:2])
         print(self.arr[6:3:-1])
         print(self.arr[6:3:1])
+        print(self.arr[-1:-6:-2])
 
     def test_reverse_list(self):
         print(self.arr[::-1])
