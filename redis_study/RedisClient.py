@@ -5,9 +5,14 @@ import redis
 class RedisClient(object):
     @property
     def redis_client(self):
-        pool = redis.ConnectionPool(host='192.168.64.128', port=6379)
-        client = redis.Redis(connection_pool=pool)
+        pool = redis.ConnectionPool(
+            host='10.175.1.246', port=6379, password='GNCzkluJQDmxkNIkxVRv5A',
+            max_connections=300, decode_responses=True)
+        client = redis.Redis(connection_pool=pool,  socket_connect_timeout=1)
         return client
+
+    def get(self, key):
+        return self.redis_client.get('bobo')
 
     def lpush(self, name, *values):
         return self.redis_client.lpush(name, *values)
@@ -23,3 +28,6 @@ class RedisClient(object):
 
 
 redis_cli = RedisClient()
+
+res = redis_cli.get('hello')
+print(res)
