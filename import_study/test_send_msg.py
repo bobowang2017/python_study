@@ -8,4 +8,4 @@ for msg in msg_list:
     print(m, c)
     _module = import_module(m)
     _obj = getattr(_module, c)()
-    getattr(_obj, 'send_msg')()
+    getattr(_obj, 'send_msg')("Hello World")
