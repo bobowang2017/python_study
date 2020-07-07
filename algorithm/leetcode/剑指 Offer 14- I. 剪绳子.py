@@ -37,6 +37,7 @@ class Solution(object):
                 if result > res:
                     res = result
             return res
+        # 需要注意的是2和3的场景，如果是大于3的话，可以直接跟3相乘，如果等于3的话，则3只能拆分成2跟1，结果就是1。这里很坑，要注意。
         if n == 2:
             return 1
         if n == 3:
