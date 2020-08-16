@@ -10,6 +10,9 @@ class ElasticSearchUtils(object):
     def create_index(self, index, doc_type, body):
         return self.es.create(index, doc_type, 1, body)
 
+    def get_all_index(self):
+        return self.es.indices.get_alias().keys()
+
     def insert(self, index, doc_type, body, id=None):
         """
         插入文档
