@@ -2,7 +2,7 @@
 from celery import Celery
 
 cel_app = Celery(
-    "celery_app_a",
+    "celery_app",
     broker="redis://127.0.0.1:6379/1",
     backend="redis://127.0.0.1:6379/2",
     # 包含以下两个任务文件，去相应的py文件中寻找任务，对多个任务做分类。
