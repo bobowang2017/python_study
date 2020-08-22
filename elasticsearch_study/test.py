@@ -11,6 +11,9 @@ class TestElasticSearch(unittest.TestCase):
         self.index_name = 'chengyu'
         self.doc_type = 'cy'
 
+    def test_ping(self):
+        print(self.client.ping())
+
     def test_create_index(self):
         mappings = {
             "mappings": {
@@ -46,8 +49,13 @@ class TestElasticSearch(unittest.TestCase):
         }
         self.client.create_index(self.index_name, self.doc_type, mappings)
 
+    def test_get_all_index(self):
+        res = self.client.get_all_index()
+        for _r in res:
+            print(_r)
+
     def test_delete_index(self):
-        _id = 'cSVwfnIBzwbShBGrdKdb'
+        _id = 'io5693MB4620cLqTniZA'
         self.client.delete(self.index_name, self.doc_type, _id)
 
     def test_delete_index_all(self):
@@ -80,6 +88,7 @@ class TestElasticSearch(unittest.TestCase):
 
     def test_search(self):
         res = self.client.search('chengyu', 'cy', {'query': {'match': {'name': '陂湖禀'}}})
+        print(res)
 
     def test_count(self):
         res = self.client.count(self.index_name)

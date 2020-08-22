@@ -7,6 +7,9 @@ class ElasticSearchUtils(object):
     def __init__(self):
         self.es = Elasticsearch(hosts=[{'host': 'localhost', 'port': 9200}])
 
+    def ping(self):
+        return self.es.ping()
+
     def create_index(self, index, doc_type, body):
         return self.es.create(index, doc_type, 1, body)
 
