@@ -75,8 +75,9 @@ def main():
     except Exception as e:
         print('*** Failed to connect to %s:%d: %r' % ("10.175.1.155", 22, e))
         sys.exit(1)
+    print('*** Success to connect to %s:%d' % ("10.175.1.155", 22))
     try:
-        reverse_forward_tunnel(80, "36.133.74.11", 22, client.get_transport())
+        reverse_forward_tunnel(6666, "10.176.139.10", 22, client.get_transport())
     except KeyboardInterrupt:
         print('C-c: Port forwarding stopped.')
         sys.exit(0)
