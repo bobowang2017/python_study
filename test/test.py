@@ -1,151 +1,86 @@
-import json
-import unittest
-from urllib import parse
+# -*- coding:UTF-8 -*-
+'''
+文件可将SSH服务端打开的某个端口的数据流量导向到指定的另一台服务器的端口上
+例如：打开命令行输入以下代码：
+rforward.py 192.168.209.121 -p 8080 -r 192.168.209.122:80 --user root --password
+输入ssh密码后，控制台打印如下：
+----------------------------控制台内容开始----------------------------------------
+D:\Workspaces\python27\py_hacker\com\lyz\chapter2>rforward.py 192.168.209.121 -p 8080 -r 192.168.209.122:80 --user root --password
+Enter SSH password:
+Connecting to ssh host 192.168.209.121 ...
+D:\Program Files\Python27\lib\site-packages\paramiko\client.py:779: UserWarning: Unknown ssh-rsa host key for 192.168.209.121: 3bc514e5b8ad5377141030149ea79649
+  key.get_name(), hostname, hexlify(key.get_fingerprint()),
+Now forwarding remote port 8080 to 192.168.209.122:80 ...
+----------------------------控制台内容结束----------------------------------------
+说明程序已经启动成功。
+rforward.py 192.168.209.121 -p 8080 -r 192.168.209.122:80 --user root --password的作用是：
+将访问192.168.209.121:8080的数据流量通过SSH隧道导向到192.168.209.122:80上，也就是说，打开浏览器访问http://192.168.209.121:8080会通过SSH隧道导向到http://192.168.209.122:80上。
+这样，只要我们能够访问http://192.168.209.121:8080，不能直接访问http://192.168.209.122:80，通过这种方式，我们也能够访问http://192.168.209.122:80了
+Created on 2017年12月19日
+@author: liuyazhuang
+'''
 
-import gitlab
-import requests
+import getpass
+import os
+import socket
+import select
+import sys
+import threading
+from optparse import OptionParser
+
+import paramiko
 
 
-class GitlabTest(unittest.TestCase):
-    def setUp(self) -> None:
-        self.url = 'http://10.11.100.91:30080/'
-        self.private_token = 'owph-Zc4mFuBPgvCpJei'
-        self.private_token = 'G4emXE-3Ag1Mx_PLYP-N'
+def handler(chan, host, port):
+    sock = socket.socket()
+    try:
+        sock.connect((host, port))
+    except Exception as e:
+        print('Forwarding request to %s:%d failed: %r' % (host, port, e))
+        return
+    print('Connected!  Tunnel open %r -> %r -> %r' % (chan.origin_addr, chan.getpeername(), (host, port)))
+    while True:
+        r, w, x = select.select([sock, chan], [], [])
+        if sock in r:
+            data = sock.recv(1024)
+            if len(data) == 0:
+                break
+            chan.send(data)
+        if chan in r:
+            data = chan.recv(1024)
+            if len(data) == 0:
+                break
+            sock.send(data)
+    chan.close()
+    sock.close()
 
-        self.url = "http://git.virtueit.net/",
-        self.private_token = "zb6DU6NbxL5uqSd6HseT"
 
-        self.url = "http://10.176.139.10:8085/"
-        self.private_token = "h1gNmtof6j2zx_Fgxtwn"
+def reverse_forward_tunnel(server_port, remote_host, remote_port, transport):
+    transport.request_port_forward('', server_port)
+    while True:
+        chan = transport.accept(1000)
+        if chan is None:
+            continue
+        thr = threading.Thread(target=handler, args=(chan, remote_host, remote_port))
+        thr.setDaemon(True)
+        thr.start()
 
-        try:
-            self.gl = gitlab.Gitlab(self.url, private_token=self.private_token)
-        except Exception as e:
-            print(e)
-            raise e
 
-    def test_login(self):
-        # 该方法已失效
-        data = {'login': 'root', 'password': '1q2w3e4r!Q'}
-        resp = requests.post(self.git_api_url, data, timeout=1)
-        if resp.status_code != 201:
-            raise Exception("Auth Failed")
-        return json.loads(resp.text)['private_token']
-
-    def test_auth(self):
-        # 新版gitlab只能通过private token的方式认证
-        username = 'root'
-        passwd = '1q2w3e4r!Q'
-        # gl = gitlab.Gitlab(url=self.url, http_password=passwd, http_username=username)
-        gl = gitlab.Gitlab(url=self.url, private_token=self.private_token)
-        gl.auth()
-
-    def test_get_all_groups(self):
-        res = self.gl.groups.list(all=True)
-        for _res in res:
-            print({'id': _res.id, 'name': _res.name})
-
-    def test_remove_all_group_members(self):
-        group = self.gl.groups.get(5)
-        members = group.members.list(all=True)
-        for _member in members:
-            try:
-                _member.delete()
-            except Exception as e:
-                print(e)
-
-    def test_list_all_users(self):
-        users = self.gl.users.list(all=True)
-        for _u in users:
-            print({'id': _u.id, 'username': _u.username})
-
-    def test_get_all_projects(self):
-        projects = self.gl.projects.list(all=True)
-        projects = [(p.id, p.name) for p in projects]
-        print(projects)
-
-    def test_get_project(self):
-        # project = self.gl.projects.get(1)
-        project = self.gl.projects.get('hello/demo')
-        print(project)
-
-    def test_get_project_run_token(self):
-        project_id = 1
-        project = self.gl.projects.get(project_id)
-        runners_token = project.runners_token
-        print(runners_token)
-
-    def test_create_group(self):
-        params = {
-            'name': 'world002',
-            'path': 'world002',
-            'visibility_level': 30
-        }
-        try:
-            result = self.gl.groups.create(params)
-        except Exception as e:
-            if e.__str__().__contains__('has already been taken'):
-                raise Exception('Gitlab组{}已存在'.format('name'))
-            raise e
-        return result.id
-
-    def test_add_group_member(self):
-        try:
-            group = self.gl.groups.get(6)
-            group.members.create({'user_id': 4, 'access_level': 20})
-        except Exception as e:
-            if e.__str__().__contains__('Already exists'):
-                pass
-                # raise GitLabError('Gitlab组{}已包含成员{}'.format(group_id, member_id))
-            else:
-                raise e
-
-    def test_get_third_gitlab_project(self):
-        """
-        获取第三方gitlab项目详情
-        :return:
-        """
-
-        def __get_third_git_info(_url):
-            """
-            通过分析url地址信息获取相关的信息
-            :param _url:
-            :return:
-            """
-            _group, _app_name = None, None
-            pa = parse.urlparse(_url)
-            try:
-                _host = pa.scheme + "://" + pa.netloc
-            except Exception as e:
-                print(e)
-            if '.git' in pa.path:
-                git_path_list = pa.path.split('/')
-                _group = git_path_list[1]
-                _app_name = git_path_list[2].split('.')[0]
-            return _host, _group, _app_name
-
-        host, group, app_name = __get_third_git_info('http://10.11.100.91:30080/hello/demo.git')
-        try:
-            project = gitlab.Gitlab(host, private_token=self.private_token).projects.get(group + '/' + app_name)
-        except Exception as e:
-            print(e)
-        else:
-            return {'id': project.id, 'name': project.name}
-
-    def test_get_gitlab_version(self):
-        url = self.url + 'api/v4/version'
-        headers = {
-            'PRIVATE-TOKEN': self.private_token
-        }
-        resp = requests.get(url, headers=headers)
-        print(resp.text)
-
-    def test_get_project_branches(self):
-        project = self.gl.projects.get('devops/test2.3.0').branches.list()
-        # res = project.branches.list()
-        print(project)
+def main():
+    client = paramiko.SSHClient()
+    client.load_system_host_keys()
+    client.set_missing_host_key_policy(paramiko.WarningPolicy())
+    try:
+        client.connect(hostname="10.175.1.155", port=22, username="root", password="start123@@")
+    except Exception as e:
+        print('*** Failed to connect to %s:%d: %r' % ("10.175.1.155", 22, e))
+        sys.exit(1)
+    try:
+        reverse_forward_tunnel(80, "36.133.74.11", 22, client.get_transport())
+    except KeyboardInterrupt:
+        print('C-c: Port forwarding stopped.')
+        sys.exit(0)
 
 
 if __name__ == '__main__':
-    unittest.main()
-
+    main()
