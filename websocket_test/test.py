@@ -45,6 +45,8 @@ if __name__ == '__main__':
     for i in range(2000):
         x1, y1 = random_loc(x, y)
         c.send({"longtitude": x1, "latitude": y1})
+        time.sleep(1)
         x, y = random_loc(x1, y1)
         c.send({"longtitude": x, "latitude": y})
+        time.sleep(1)
 
